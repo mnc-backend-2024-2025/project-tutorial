@@ -4,6 +4,6 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: hibernate-tutorial
+      POSTGRES_DB: project-tutorial
     ports:
       - "5432:5432"
