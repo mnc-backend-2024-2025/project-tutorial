@@ -72,14 +72,16 @@ public abstract class AbstractDAO<T> implements DAO<T> {
     public List<T> readMany(int offset, int limit) {
         try {
             getEntityManager().getTransaction().begin();
-            TypedQuery<T> query = getEntityManager().createQuery("""
-                    SELECT e
-                    FROM :table e
-                    ORDER BY id
-                    """, entityClass);
 
-            List<T> entities = query.setParameter("table", tableName())
-                    .setMaxResults(limit)
+            String queryBase = """
+                    SELECT e
+                    FROM %s e
+                    ORDER BY id
+                    """;
+
+            TypedQuery<T> query = getEntityManager().createQuery(String.format(queryBase, entityClass.getSimpleName()), entityClass);
+
+            List<T> entities = query.setMaxResults(limit)
                     .setFirstResult(offset)
                     .getResultList();
 

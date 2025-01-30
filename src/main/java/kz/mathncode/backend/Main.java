@@ -1,15 +1,21 @@
 package kz.mathncode.backend;
 
 import io.javalin.Javalin;
+import io.javalin.config.RequestLoggerConfig;
 import jakarta.persistence.*;
+import kz.mathncode.backend.controller.UserController;
 import kz.mathncode.backend.dao.ClickDAO;
 import kz.mathncode.backend.dao.URLResourceDAO;
 import kz.mathncode.backend.dao.UserDAO;
 import kz.mathncode.backend.entity.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.ZonedDateTime;
 import java.util.Properties;
 import java.util.UUID;
+
+import static io.javalin.apibuilder.ApiBuilder.*;
 
 public class Main {
 
@@ -18,23 +24,27 @@ public class Main {
     public static void main(String[] args) {
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("kz.mathncode.hibernate-tutorial");
         UserDAO userDAO = new UserDAO(emf.createEntityManager());
+        UserController userController = new UserController(userDAO);
+        Logger logger = LoggerFactory.getLogger(Main.class);
 
-        Javalin app = Javalin.create();
-        app.post("/users", ctx -> {
-            String firstName = ctx.queryParam("first_name");
-            String lastName = ctx.queryParam("last_name");
-            String email = ctx.queryParam("email");
+        Javalin app = Javalin.create(config -> {
+            config.http.prefer405over404 = true;
 
-            User user = new User(
-                    null, //из-за @GeneratedValue
-                    firstName,
-                    lastName,
-                    email,
-                    ZonedDateTime.now()
-            );
+            config.requestLogger.http((ctx, ms) -> {
+                logger.info("Handled request {} {} at {}", ctx.method(), ctx.path(), ms);
+            });
 
-            userDAO.create(user);
-            System.out.printf("Created user with parameters: %s, %s, %s\n", firstName, lastName, email);
+            config.router.apiBuilder(()-> {
+                path("users/", () -> {
+                   get(userController::getMany);
+                   post(userController::create);
+                   path("/{id}", () -> {
+                       get(userController::getOne);
+                       patch(userController::update);
+                       delete(userController::delete);
+                   });
+                });
+            });
         });
 
         app.start(7001);
