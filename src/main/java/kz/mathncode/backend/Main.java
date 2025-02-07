@@ -1,19 +1,13 @@
 package kz.mathncode.backend;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.Javalin;
-import io.javalin.config.RequestLoggerConfig;
 import jakarta.persistence.*;
 import kz.mathncode.backend.controller.UserController;
-import kz.mathncode.backend.dao.ClickDAO;
 import kz.mathncode.backend.dao.URLResourceDAO;
 import kz.mathncode.backend.dao.UserDAO;
-import kz.mathncode.backend.entity.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.time.ZonedDateTime;
-import java.util.Properties;
-import java.util.UUID;
 
 import static io.javalin.apibuilder.ApiBuilder.*;
 
@@ -24,8 +18,11 @@ public class Main {
     public static void main(String[] args) {
         EntityManagerFactory emf = Persistence.createEntityManagerFactory("kz.mathncode.hibernate-tutorial");
         UserDAO userDAO = new UserDAO(emf.createEntityManager());
-        UserController userController = new UserController(userDAO);
+        ObjectMapper objectMapper = new ObjectMapper();
+        UserController userController = new UserController(userDAO, objectMapper);
         Logger logger = LoggerFactory.getLogger(Main.class);
+
+        URLResourceDAO urlResourceDAO = new URLResourceDAO(emf.createEntityManager());
 
         Javalin app = Javalin.create(config -> {
             config.http.prefer405over404 = true;
