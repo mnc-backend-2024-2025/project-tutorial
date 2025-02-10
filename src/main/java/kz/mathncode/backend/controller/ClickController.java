@@ -5,39 +5,37 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import kz.mathncode.backend.dao.DAO;
-import kz.mathncode.backend.entity.User;
+import kz.mathncode.backend.entity.Click;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
-public class UserController extends AbstractController<User> {
-    public UserController(DAO<User> dao, ObjectMapper objectMapper) {
+public class ClickController extends AbstractController<Click> {
+    public ClickController(DAO<Click> dao, ObjectMapper objectMapper) {
         super(dao, objectMapper);
     }
 
     @Override
-    public User parseBodyCreate(Context ctx) {
+    public Click parseBodyCreate(Context ctx) {
         try {
-            User user = getObjectMapper().readValue(ctx.body(), User.class);
-            user.setId(null);
-            user.setCreatedAt(ZonedDateTime.now());
-            return user;
+            Click click = getObjectMapper().readValue(ctx.body(), Click.class);
+            click.setId(null);
+            click.setCreatedAt(ZonedDateTime.now());
+            return click;
         } catch (JsonProcessingException e) {
             throw new BadRequestResponse("Invalid JSON provided");
         }
     }
 
     @Override
-    public User parseBodyUpdate(Context ctx) {
+    public Click parseBodyUpdate(Context ctx) {
         try {
             UUID id = idPathParam(ctx);
-            User oldUser = getDao().readOne(id);
-            User newUser = getObjectMapper().readValue(ctx.body(), User.class);
-
-            newUser.setId(oldUser.getId());
-            newUser.setCreatedAt(oldUser.getCreatedAt());
-
-            return newUser;
+            Click oldClick = getDao().readOne(id);
+            Click click = getObjectMapper().readValue(ctx.body(), Click.class);
+            click.setId(id);
+            click.setCreatedAt(oldClick.getCreatedAt());
+            return click;
         } catch (JsonProcessingException e) {
             throw new BadRequestResponse("Invalid JSON provided");
         }

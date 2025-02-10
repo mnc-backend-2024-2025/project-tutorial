@@ -1,7 +1,10 @@
 package kz.mathncode.backend.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
+import io.javalin.http.InternalServerErrorResponse;
 import kz.mathncode.backend.dao.DAO;
 
 import java.util.List;
@@ -11,10 +14,29 @@ import java.util.function.Function;
 public abstract class AbstractController<T> implements Controller<T> {
     public static String ID_PATH_PARAM = "id";
 
-    DAO<T> dao;
+    private DAO<T> dao;
+    private ObjectMapper objectMapper;
 
-    public AbstractController(DAO<T> dao) {
+
+    public ObjectMapper getObjectMapper() {
+        return objectMapper;
+    }
+
+    public void setObjectMapper(ObjectMapper objectMapper) {
+        this.objectMapper = objectMapper;
+    }
+
+    public DAO<T> getDao() {
+        return dao;
+    }
+
+    public void setDao(DAO<T> dao) {
         this.dao = dao;
+    }
+
+    public AbstractController(DAO<T> dao, ObjectMapper objectMapper) {
+        this.dao = dao;
+        this.objectMapper = objectMapper;
     }
 
     public T parseBody(Context ctx, Function<Context, T> parserFunction) {
@@ -31,15 +53,24 @@ public abstract class AbstractController<T> implements Controller<T> {
 
     @Override
     public void getOne(Context ctx) {
-        T entity = dao.readOne(idPathParam(ctx));
-        ctx.result(entity.toString());
+        try {
+            T entity = dao.readOne(idPathParam(ctx));
+            String json = getObjectMapper().writeValueAsString(entity);
+            ctx.result(json);
+        } catch (JsonProcessingException e) {
+            throw new InternalServerErrorResponse("Error during JSON serialization");
+        }
     }
 
     @Override
-    public void getMany(Context context) {
-        List<T> entities= dao.readMany(0, 100);
-        String result = entities.toString();
-        context.result(result);
+    public void getMany(Context ctx) {
+        try {
+            List<T> entities= dao.readMany(0, 100);
+            String json = getObjectMapper().writeValueAsString(entities);
+            ctx.result(json);
+        } catch (JsonProcessingException e) {
+            throw new InternalServerErrorResponse("Error during JSON serialization");
+        }
     }
 
     @Override
