@@ -4,10 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
+import io.javalin.http.ForbiddenResponse;
 import io.javalin.http.HttpStatus;
 import kz.mathncode.backend.dao.DAO;
 import kz.mathncode.backend.entity.Click;
 import kz.mathncode.backend.entity.URLResource;
+import kz.mathncode.backend.service.UserService;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
@@ -18,8 +20,8 @@ public class URLResourceController extends AbstractController<URLResource> {
 
     private final DAO<Click> clickDAO;
 
-    public URLResourceController(DAO<URLResource> dao, ObjectMapper objectMapper, DAO<Click> clickDAO) {
-        super(dao, objectMapper);
+    public URLResourceController(DAO<URLResource> dao, ObjectMapper objectMapper, UserService userService, DAO<Click> clickDAO) {
+        super(dao, objectMapper, userService);
         this.clickDAO = clickDAO;
     }
 
@@ -66,5 +68,20 @@ public class URLResourceController extends AbstractController<URLResource> {
 
     public DAO<Click> getClickDAO() {
         return clickDAO;
+    }
+
+    @Override
+    public void create(Context ctx) {
+        URLResource entity = parseBody(ctx, this::parseBodyCreate);
+        if (userOf(ctx) == null) {
+            throw new ForbiddenResponse();
+        }
+
+        if (entity.getCreatedBy() != userOf(ctx)) {
+            throw new ForbiddenResponse();
+        }
+
+        getDao().create(entity);
+        ctx.status(HttpStatus.CREATED);
     }
 }

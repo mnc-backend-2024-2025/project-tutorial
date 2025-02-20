@@ -6,13 +6,14 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import kz.mathncode.backend.dao.DAO;
 import kz.mathncode.backend.entity.Click;
+import kz.mathncode.backend.service.UserService;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public class ClickController extends AbstractController<Click> {
-    public ClickController(DAO<Click> dao, ObjectMapper objectMapper) {
-        super(dao, objectMapper);
+    public ClickController(DAO<Click> dao, ObjectMapper objectMapper, UserService userService) {
+        super(dao, objectMapper, userService);
     }
 
     @Override

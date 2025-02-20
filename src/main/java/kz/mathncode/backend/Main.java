@@ -16,6 +16,7 @@ import kz.mathncode.backend.entity.User;
 import kz.mathncode.backend.json.deserializers.URLResourceDeserializer;
 import kz.mathncode.backend.json.deserializers.UserDeserializer;
 import kz.mathncode.backend.json.serializers.UserSerializer;
+import kz.mathncode.backend.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,9 +39,11 @@ public class Main {
                 )
                 .registerModule(new JavaTimeModule());
 
-        UserController userController = new UserController(userDAO, objectMapper);
-        URLResourceController urlResourceController = new URLResourceController(urlResourceDAO, objectMapper, clickDAO);
-        ClickController clickController = new ClickController(clickDAO, objectMapper);
+        UserService userService = new UserService(userDAO);
+
+        UserController userController = new UserController(userDAO, objectMapper, userService);
+        URLResourceController urlResourceController = new URLResourceController(urlResourceDAO, objectMapper, userService, clickDAO);
+        ClickController clickController = new ClickController(clickDAO, objectMapper, userService);
 
         Logger logger = LoggerFactory.getLogger(Main.class);
 
@@ -76,10 +79,10 @@ public class Main {
 
 
                 path("clicks/", () -> {
-                    get(urlResourceController::getMany);
+                    get(clickController::getMany);
                     path("/{id}", () -> {
-                        get(urlResourceController::getOne);
-                        delete(urlResourceController::delete);
+                        get(clickController::getOne);
+                        delete(clickController::delete);
                     });
                 });
 

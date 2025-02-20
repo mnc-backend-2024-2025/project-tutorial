@@ -6,13 +6,14 @@ import io.javalin.http.BadRequestResponse;
 import io.javalin.http.Context;
 import kz.mathncode.backend.dao.DAO;
 import kz.mathncode.backend.entity.User;
+import kz.mathncode.backend.service.UserService;
 
 import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public class UserController extends AbstractController<User> {
-    public UserController(DAO<User> dao, ObjectMapper objectMapper) {
-        super(dao, objectMapper);
+    public UserController(DAO<User> dao, ObjectMapper objectMapper, UserService userService) {
+        super(dao, objectMapper, userService);
     }
 
     @Override

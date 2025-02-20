@@ -5,7 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.javalin.http.Context;
 import io.javalin.http.HttpStatus;
 import io.javalin.http.InternalServerErrorResponse;
+import io.javalin.http.UnauthorizedResponse;
+import io.javalin.security.BasicAuthCredentials;
 import kz.mathncode.backend.dao.DAO;
+import kz.mathncode.backend.entity.User;
+import kz.mathncode.backend.service.UserService;
 
 import java.util.List;
 import java.util.UUID;
@@ -14,29 +18,40 @@ import java.util.function.Function;
 public abstract class AbstractController<T> implements Controller<T> {
     public static String ID_PATH_PARAM = "id";
 
-    private DAO<T> dao;
-    private ObjectMapper objectMapper;
+    private final DAO<T> dao;
+    private final ObjectMapper objectMapper;
+    private final UserService userService;
 
+    @Override
+    public User userOf(Context ctx) {
+        BasicAuthCredentials credentials = ctx.basicAuthCredentials();
+        if (credentials == null) {
+            return null;
+        }
+
+        String email = credentials.getUsername();
+        String password = credentials.getPassword();
+
+        User user = userService.authenticate(email, password);
+        if (user == null) {
+            throw new UnauthorizedResponse();
+        } else {
+            return user;
+        }
+    }
 
     public ObjectMapper getObjectMapper() {
         return objectMapper;
-    }
-
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
     }
 
     public DAO<T> getDao() {
         return dao;
     }
 
-    public void setDao(DAO<T> dao) {
-        this.dao = dao;
-    }
-
-    public AbstractController(DAO<T> dao, ObjectMapper objectMapper) {
+    public AbstractController(DAO<T> dao, ObjectMapper objectMapper, UserService userService) {
         this.dao = dao;
         this.objectMapper = objectMapper;
+        this.userService = userService;
     }
 
     public T parseBody(Context ctx, Function<Context, T> parserFunction) {
@@ -92,5 +107,9 @@ public abstract class AbstractController<T> implements Controller<T> {
         UUID id = idPathParam(ctx);
         dao.delete(id);
         ctx.status(HttpStatus.NO_CONTENT);
+    }
+
+    public UserService getUserService() {
+        return userService;
     }
 }
