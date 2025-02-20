@@ -13,10 +13,12 @@ public class UserDeserializer extends StdDeserializer<User> {
     public static String FIELD_FIRST_NAME = "firstName";
     public static String FIELD_LAST_NAME = "lastName";
     public static String FIELD_EMAIL = "email";
+    public static String FIELD_PASSWORD = "password";
 
     public UserDeserializer() {
         super(User.class);
     }
+
 
     @Override
     public User deserialize(JsonParser jsonParser, DeserializationContext deserializationContext) throws IOException, JacksonException {
@@ -24,7 +26,8 @@ public class UserDeserializer extends StdDeserializer<User> {
         String firstName = root.get(FIELD_FIRST_NAME).asText();
         String lastName = root.get(FIELD_LAST_NAME).asText();
         String email = root.get(FIELD_EMAIL).asText();
+        String password = root.get(FIELD_PASSWORD).asText();
 
-        return new User(null, firstName, lastName, email, null);
+        return new User(null, firstName, lastName, email, null, password);
     }
 }

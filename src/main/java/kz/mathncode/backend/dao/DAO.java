@@ -9,4 +9,7 @@ public interface DAO<T> {
     List<T> readMany(int offset, int limit);
     void update(UUID id, T entity);
     void delete(UUID id);
+
+    List<T> findByField(String field, Object value);
+    T findFirstByField(String field, Object value);
 }

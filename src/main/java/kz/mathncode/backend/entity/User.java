@@ -22,18 +22,22 @@ public class User {
     @Column
     private String email;
 
+    @Column
+    private String password;
+
     @Temporal(TemporalType.TIMESTAMP)
     private ZonedDateTime createdAt;
 
     public User() {
     }
 
-    public User(UUID id, String firstName, String lastName, String email, ZonedDateTime createdAt) {
+    public User(UUID id, String firstName, String lastName, String email, ZonedDateTime createdAt, String password) {
         this.id = id;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.createdAt = createdAt;
+        this.password = password;
     }
 
     public UUID getId() {
@@ -97,5 +101,13 @@ public class User {
                 ", email='" + email + '\'' +
                 ", createdAt=" + createdAt +
                 '}';
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

@@ -15,6 +15,7 @@ import kz.mathncode.backend.entity.URLResource;
 import kz.mathncode.backend.entity.User;
 import kz.mathncode.backend.json.deserializers.URLResourceDeserializer;
 import kz.mathncode.backend.json.deserializers.UserDeserializer;
+import kz.mathncode.backend.json.serializers.UserSerializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,11 +34,12 @@ public class Main {
                         new SimpleModule()
                                 .addDeserializer(User.class, new UserDeserializer())
                                 .addDeserializer(URLResource.class, new URLResourceDeserializer(userDAO))
+                                .addSerializer(User.class, new UserSerializer())
                 )
                 .registerModule(new JavaTimeModule());
 
         UserController userController = new UserController(userDAO, objectMapper);
-        URLResourceController urlResourceController = new URLResourceController(urlResourceDAO, objectMapper);
+        URLResourceController urlResourceController = new URLResourceController(urlResourceDAO, objectMapper, clickDAO);
         ClickController clickController = new ClickController(clickDAO, objectMapper);
 
         Logger logger = LoggerFactory.getLogger(Main.class);
@@ -74,13 +76,15 @@ public class Main {
 
 
                 path("clicks/", () -> {
-                    get(clickController::getMany);
-                    post(clickController::create);
+                    get(urlResourceController::getMany);
                     path("/{id}", () -> {
-                        get(clickController::getOne);
-                        patch(clickController::update);
-                        delete(clickController::delete);
+                        get(urlResourceController::getOne);
+                        delete(urlResourceController::delete);
                     });
+                });
+
+                path("/{shortURL}", () -> {
+                    get(urlResourceController::redirect);
                 });
             });
         });

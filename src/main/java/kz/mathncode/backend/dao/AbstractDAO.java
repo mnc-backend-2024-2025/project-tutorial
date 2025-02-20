@@ -118,4 +118,45 @@ public abstract class AbstractDAO<T> implements DAO<T> {
             throw e;
         }
     }
+
+    private TypedQuery<T> findByFieldQuery(String field, Object value) {
+        String queryBase = """
+                SELECT e
+                FROM %s e
+                WHERE e.%s = :value
+                """;
+        String formatted = String.format(queryBase, entityClass.getSimpleName(), field);
+
+        TypedQuery<T> query = getEntityManager()
+                .createQuery(formatted, entityClass)
+                .setParameter("value", value);
+
+        return query;
+    }
+
+    @Override
+    public List<T> findByField(String field, Object value) {
+        try {
+            getEntityManager().getTransaction().begin();
+            List<T> result = findByFieldQuery(field, value).getResultList();
+            getEntityManager().getTransaction().commit();
+            return result;
+        } catch (Exception e) {
+            getEntityManager().getTransaction().rollback();
+            throw e;
+        }
+    }
+
+    @Override
+    public T findFirstByField(String field, Object value) {
+        try {
+            getEntityManager().getTransaction().begin();
+            T result = findByFieldQuery(field, value).getSingleResult();
+            getEntityManager().getTransaction().commit();
+            return result;
+        } catch (Exception e) {
+            getEntityManager().getTransaction().rollback();
+            throw e;
+        }
+    }
 }
