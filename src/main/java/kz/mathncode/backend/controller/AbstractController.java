@@ -33,11 +33,7 @@ public abstract class AbstractController<T> implements Controller<T> {
         String password = credentials.getPassword();
 
         User user = userService.authenticate(email, password);
-        if (user == null) {
-            throw new UnauthorizedResponse();
-        } else {
-            return user;
-        }
+        return user;
     }
 
     public ObjectMapper getObjectMapper() {
