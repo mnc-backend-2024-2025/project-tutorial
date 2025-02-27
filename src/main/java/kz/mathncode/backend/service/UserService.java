@@ -2,6 +2,7 @@ package kz.mathncode.backend.service;
 
 import kz.mathncode.backend.dao.DAO;
 import kz.mathncode.backend.entity.User;
+import org.mindrot.jbcrypt.BCrypt;
 
 public class UserService extends AbstractService<User> {
     public UserService(DAO<User> dao) {
@@ -18,7 +19,8 @@ public class UserService extends AbstractService<User> {
         if (user == null) {
             return null;
         }
-        if (password.equals(user.getPassword())) {
+
+        if (BCrypt.checkpw(password, user.getPassword())) {
             return user;
         } else {
             return null;

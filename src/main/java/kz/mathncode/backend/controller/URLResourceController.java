@@ -41,7 +41,7 @@ public class URLResourceController extends AbstractController<URLResource> {
     public URLResource parseBodyUpdate(Context ctx) {
         try {
             UUID id = idPathParam(ctx);
-            URLResource oldResource = getObjectMapper().readValue(ctx.body(), URLResource.class);
+            URLResource oldResource = getDao().readOne(id);
             URLResource resource = getObjectMapper().readValue(ctx.body(), URLResource.class);
             resource.setId(id);
             resource.setCreatedAt(oldResource.getCreatedAt());
@@ -74,14 +74,27 @@ public class URLResourceController extends AbstractController<URLResource> {
     public void create(Context ctx) {
         URLResource entity = parseBody(ctx, this::parseBodyCreate);
         if (userOf(ctx) == null) {
-            throw new ForbiddenResponse();
+            throw new ForbiddenResponse("Only authenticated users can perform this action");
         }
-
         if (entity.getCreatedBy() != userOf(ctx)) {
-            throw new ForbiddenResponse();
+            throw new ForbiddenResponse("Can't create record with createdBy to different user");
         }
 
         getDao().create(entity);
         ctx.status(HttpStatus.CREATED);
+    }
+
+    @Override
+    public void update(Context ctx) {
+        UUID id = idPathParam(ctx);
+        URLResource entity = parseBody(ctx, this::parseBodyUpdate);
+        if (userOf(ctx) == null) {
+            throw new ForbiddenResponse("Only authenticated users can perform this action");
+        }
+        if (entity.getCreatedBy() != userOf(ctx)) {
+            throw new ForbiddenResponse("Can't update createdBy to different user");
+        }
+
+        getDao().update(id, entity);
     }
 }
